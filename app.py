@@ -137,8 +137,8 @@ def get_trimble_projects(**kwargs):
 def get_project_files(params, **kwargs):
     """Fetch all files from the selected Trimble Connect project"""
     # Only fetch files if a project is selected
-    if not params.project or params.project == "error":
-        return [vkt.OptionListElement(value="", label="Please select a project first")]
+    if not params.project:
+        return [vkt.OptionListElement(value="Select a Project First", label="Select a Project First")]
     
     try:
         # Get the OAuth2 token
@@ -199,8 +199,28 @@ def get_project_files(params, **kwargs):
 
 class Parametrization(vkt.Parametrization):
     """Parametrization for Trimble Connect OAuth2 test"""
+    # Header and description
+    text_header = vkt.Text("# Trimble Connect - Viktor Integration")
+    text_description = vkt.Text(
+        "This app integrates with Trimble Connect to browse projects and visualize 3D models. "
+        "Select a project and file below, then download the viewer HTML to open it in your browser."
+    )
+    
+    lb_1 = vkt.LineBreak()
+    
+    # Project and file selection
     project = vkt.OptionField("Select Project", options=get_trimble_projects)
-    file = vkt.OptionField("Select File/Model", options=get_project_files)
+    file = vkt.OptionField("Select File/Model", options=get_project_files, default="")
+    
+    lb_2 = vkt.LineBreak()
+    
+    # Download section
+    text_download_description = vkt.Text("""## Download Viewer
+Download a standalone HTML file that you can open in your browser to view the 3D model.
+The file includes embedded credentials and will work without any additional setup.
+"""
+    )
+    download_viewer_btn = vkt.DownloadButton("Download Viewer HTML", method="download_viewer_html")
 
 
 class Controller(vkt.Controller):
@@ -278,7 +298,7 @@ class Controller(vkt.Controller):
         # 3. Start recursion with the Root Folder ID, not the Project ID
         return list_folder(root_id, "")
 
-    @vkt.DataView("Token Info", duration_guess=1)
+    @vkt.DataView("Token Info", duration_guess=40)
     def test_oauth2_token(self, params, **kwargs):
         """Test the OAuth2 integration and display token information"""
         # Initialize the OAuth2 integration with the configured name
@@ -331,6 +351,33 @@ class Controller(vkt.Controller):
                 )
         
         return vkt.DataResult(data_group)
+
+    def download_viewer_html(self, params, **kwargs):
+        """Download the Trimble Connect viewer as a standalone HTML file"""
+        # Check if both project and file are selected
+        if not params.project or params.project == "error":
+            raise vkt.UserError("Please select a project first")
+        
+        if not params.file or params.file == "error" or params.file == "":
+            raise vkt.UserError("Please select a file/model to download the viewer for")
+        
+        # Get the OAuth2 access token
+        integration = vkt.external.OAuth2Integration("trimble-connect")
+        access_token = integration.get_access_token()
+        
+        # Build the HTML viewer with the selected project and file
+        html = build_trimble_viewer_html(
+            access_token=access_token,
+            project_id=params.project,
+            model_id=params.file,
+            version_id=None  # Optional: can be extended to support version selection
+        )
+        
+        # Create a file from the HTML string
+        html_file = vkt.File.from_data(html)
+        
+        # Return as downloadable file
+        return vkt.DownloadResult(html_file, "trimble_connect_viewer.html")
 
     @vkt.WebView("3D Viewer", duration_guess=1)
     def show_trimble_viewer(self, params, **kwargs):
