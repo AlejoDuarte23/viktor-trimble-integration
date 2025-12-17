@@ -6,7 +6,7 @@ Your organization should have a subscription plan. Go to the [Trimble Connect we
 # Creating a Project in Trimble Connect
 In your Trimble Connect dashboard, you can manage or create a new project. This project will be connected to the VIKTOR application. If there is no project yet, you can click on "New" and fill in the form to create one.
 
-assets\create_app.png
+![Create App](assets/create_app.png)
 
 :::note
 It is important to note the region where the application is hosted because the APIs to use depend on the region, as we will see later.
@@ -25,7 +25,7 @@ For the Sign-In Redirect URL (OAuth 2.0), you will provide a URL based on your V
 
 Your environment URL should be `https://cloud.viktor.ai/` or similar, depending on your organization. As an example, we will use `https://cloud.viktor.ai/api/integrations/oauth2/callback/`, but make sure to use the proper environment URL.
 
-assets\cross_error.png
+![Application Information](assets/app_information.png)
 
 After filling in the form, you will receive an email from the Trimble support team within the next 72 hours:
 
@@ -68,14 +68,14 @@ openid <ApplicationName>
 
 As defined in the previous step, for the "my-viktor-integration" application name, the scope will be `openid my-viktor-integration`.
 
-assets\viktor-integration-2.png
+![VIKTOR Integration Configuration](assets/viktor-integration-2.png)
 
 
 ## Implementing the Integration in an App (Developer)
 
 Once an administrator sets up and assigns the OAuth 2.0 integration to the app, the developer can start the implementation.
 
-assets\final_integration.png
+![Final Integration Setup](assets/final_integration.png)
 
 In your `viktor.config.toml`, add the integration:
 ```plaintext
