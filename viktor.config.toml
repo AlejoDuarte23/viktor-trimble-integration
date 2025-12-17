@@ -1,0 +1,6 @@
+app_type = "editor"
+python_version = "3.13"
+registered_name = "trimble-sample-app"
+oauth2_integrations = [
+    "trimble-connect"
+]
